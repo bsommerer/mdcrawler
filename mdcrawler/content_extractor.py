@@ -29,7 +29,9 @@ def extract_content(html: str, base_url: str, prefix: str, include_images: bool 
     images: list[ImageReference] = []
     if include_images:
         images = _extract_images(soup, base_url)
+    _promote_data_as_tags(soup)
     _strip_layout(soup, include_images=include_images)
+    _replace_tables(soup)
 
     discovered_urls: list[str] = []
     for link in soup.find_all("a", href=True):
@@ -59,24 +61,8 @@ def extract_content(html: str, base_url: str, prefix: str, include_images: bool 
 
 
 def _strip_layout(soup: BeautifulSoup, include_images: bool) -> None:
-    if include_images:
-        remove_tags: list[str] = []
-    else:
-        remove_tags = ["img", "header", "footer", "nav", "aside"]
-
-    for tag_name in remove_tags:
-        for tag in soup.find_all(tag_name):
-            tag.decompose()
-
-    if include_images:
-        return
-
-    for tag in soup.find_all(True):
-        if not isinstance(tag, Tag) or tag.attrs is None:
-            continue
-        classes = " ".join(tag.get("class", []))
-        tag_id = tag.get("id", "")
-        if "sidebar" in classes or "sidebar" in tag_id:
+    if not include_images:
+        for tag in soup.find_all("img"):
             tag.decompose()
 
 
@@ -118,6 +104,14 @@ def _extract_images(soup: BeautifulSoup, base_url: str) -> list[ImageReference]:
     return images
 
 
+def _replace_tables(soup: BeautifulSoup) -> None:
+    for table in soup.find_all("table"):
+        markdown = _table_to_markdown(table)
+        placeholder = soup.new_tag("p")
+        placeholder.string = markdown
+        table.replace_with(placeholder)
+
+
 def _normalize_url(url: str) -> str:
     parts = urlsplit(url)
     if parts.scheme not in {"http", "https"}:
@@ -127,15 +121,36 @@ def _normalize_url(url: str) -> str:
 
 
 def _html_to_markdown(soup: BeautifulSoup) -> str:
+    block_tags = {
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "p",
+        "li",
+        "pre",
+        "table",
+        "div",
+        "header",
+        "section",
+    }
     lines: list[str] = []
     body = soup.body or soup
-    for element in body.find_all(["h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "pre"]):
+    for element in body.find_all(block_tags):
+        if element.name in {"div", "header", "section"} and _has_block_child(element, block_tags):
+            continue
         text = element.get_text(" ", strip=True)
         if not text:
             continue
-        if element.name.startswith("h"):
+        if element.name == "p" and _is_strong_only(element):
+            lines.append(f"# {text}")
+        elif element.name.startswith("h"):
             level = int(element.name[1])
             lines.append(f"{'#' * level} {text}")
+        elif element.name == "table":
+            lines.extend(text.splitlines())
         elif element.name == "li":
             lines.append(f"- {text}")
         elif element.name == "pre":
@@ -146,3 +161,58 @@ def _html_to_markdown(soup: BeautifulSoup) -> str:
             lines.append(text)
         lines.append("")
     return "\n".join(lines).strip() + "\n"
+
+
+def _is_strong_only(element: Tag) -> bool:
+    children = [child for child in element.find_all(True, recursive=False)]
+    if len(children) != 1 or children[0].name != "strong":
+        return False
+    return element.get_text(" ", strip=True) == children[0].get_text(" ", strip=True)
+
+
+def _has_block_child(element: Tag, block_tags: set[str]) -> bool:
+    for child in element.find_all(True):
+        if child is element:
+            continue
+        if child.name in block_tags and child.name not in {"div", "header", "section"}:
+            return True
+    return False
+
+
+def _table_to_markdown(table: Tag) -> str:
+    rows = []
+    for row in table.find_all("tr"):
+        cells = [cell.get_text(" ", strip=True) for cell in row.find_all(["th", "td"])]
+        if cells:
+            rows.append(cells)
+    if not rows:
+        return ""
+    header = rows[0]
+    body_rows = rows[1:] if len(rows) > 1 else []
+    column_count = max(len(header), max((len(row) for row in body_rows), default=0))
+    header = header + [""] * (column_count - len(header))
+    lines = ["| " + " | ".join(header) + " |", "| " + " | ".join(["---"] * column_count) + " |"]
+    for row in body_rows:
+        row = row + [""] * (column_count - len(row))
+        lines.append("| " + " | ".join(row) + " |")
+    return "\n".join(lines)
+
+
+def _promote_data_as_tags(soup: BeautifulSoup) -> None:
+    allowed = {
+        "p",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "li",
+        "pre",
+    }
+    for tag in soup.find_all(attrs={"data-as": True}):
+        if not isinstance(tag, Tag):
+            continue
+        value = tag.get("data-as", "").strip().lower()
+        if value in allowed:
+            tag.name = value

@@ -40,3 +40,20 @@ def test_extract_content_includes_images_and_backgrounds() -> None:
     assert tokens[1] in result.markdown
     assert result.images[0].url == "https://example.com/images/logo.png"
     assert result.images[1].url == "https://example.com/images/bg.jpg"
+
+
+def test_extract_content_converts_tables() -> None:
+    html = """
+    <html>
+      <body>
+        <table>
+          <tr><th>Name</th><th>Value</th></tr>
+          <tr><td>One</td><td>1</td></tr>
+        </table>
+      </body>
+    </html>
+    """
+    result = extract_content(html, base_url="https://example.com", prefix="https://example.com/")
+
+    assert "| Name | Value |" in result.markdown
+    assert "| One | 1 |" in result.markdown
