@@ -5,7 +5,7 @@ from queue import Queue
 import threading
 from urllib.parse import urlsplit, urlunsplit
 
-from mdcrawler.content_extractor import extract_content
+from mdcrawler.content_extractor import ImageReference, extract_content
 from mdcrawler.fetcher import fetch_urls
 
 
@@ -14,6 +14,7 @@ class Page:
     url: str
     title: str
     markdown: str
+    images: list[ImageReference]
 
 
 def derive_prefix(start_url: str) -> str:
@@ -27,10 +28,11 @@ def derive_prefix(start_url: str) -> str:
 
 
 class Crawler:
-    def __init__(self, start_url: str, prefix: str, threads: int = 4) -> None:
+    def __init__(self, start_url: str, prefix: str, threads: int = 4, include_images: bool = False) -> None:
         self.start_url = start_url
         self.prefix = prefix
         self.threads = max(1, threads)
+        self.include_images = include_images
         self.queue: Queue[str] = Queue()
         self.visited: set[str] = set()
         self.lock = threading.Lock()
@@ -53,9 +55,11 @@ class Crawler:
             for url, response in results:
                 if response is None:
                     continue
-                content = extract_content(response.text, url, self.prefix)
+                content = extract_content(response.text, url, self.prefix, include_images=self.include_images)
                 if content.markdown.strip():
-                    pages.append(Page(url=url, title=content.title, markdown=content.markdown))
+                    pages.append(
+                        Page(url=url, title=content.title, markdown=content.markdown, images=content.images)
+                    )
                 self._enqueue_discovered(content.discovered_urls)
 
         return pages

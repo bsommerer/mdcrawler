@@ -11,6 +11,7 @@ Optional flags:
 - `--prefix`: URL prefix to limit crawling (defaults to the start URL without the last path segment).
 - `--threads`: Number of concurrent fetch threads (default: 4).
 - `--output`: Output directory for Markdown files (default: `output`).
+- `--include-images` / `--no-include-images`: Include images (including background images) and save them under `images/` (default: disabled).
 
 ## Example output structure
 
@@ -18,6 +19,9 @@ Optional flags:
 output/
 ├── combined.md
 ├── index.md
+├── images/
+│   ├── docs-example-com-logo.png
+│   └── docs-example-com-hero.jpg
 └── pages/
     ├── example-com-docs-intro-html.md
     └── example-com-docs-installation-html.md

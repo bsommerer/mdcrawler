@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
@@ -12,11 +13,23 @@ class ExtractedContent:
     title: str
     markdown: str
     discovered_urls: list[str]
+    images: list["ImageReference"]
 
 
-def extract_content(html: str, base_url: str, prefix: str) -> ExtractedContent:
+@dataclass
+class ImageReference:
+    token: str
+    url: str
+    alt: str
+    filename: str | None = None
+
+
+def extract_content(html: str, base_url: str, prefix: str, include_images: bool = False) -> ExtractedContent:
     soup = BeautifulSoup(html, "html.parser")
-    _strip_layout(soup)
+    images: list[ImageReference] = []
+    if include_images:
+        images = _extract_images(soup, base_url)
+    _strip_layout(soup, include_images=include_images)
 
     discovered_urls: list[str] = []
     for link in soup.find_all("a", href=True):
@@ -37,13 +50,26 @@ def extract_content(html: str, base_url: str, prefix: str) -> ExtractedContent:
     title = title_tag.get_text(strip=True) if title_tag else base_url
 
     markdown = _html_to_markdown(soup)
-    return ExtractedContent(title=title, markdown=markdown, discovered_urls=discovered_urls)
+    return ExtractedContent(
+        title=title,
+        markdown=markdown,
+        discovered_urls=discovered_urls,
+        images=images,
+    )
 
 
-def _strip_layout(soup: BeautifulSoup) -> None:
-    for tag_name in ["img", "header", "footer", "nav", "aside"]:
+def _strip_layout(soup: BeautifulSoup, include_images: bool) -> None:
+    if include_images:
+        remove_tags: list[str] = []
+    else:
+        remove_tags = ["img", "header", "footer", "nav", "aside"]
+
+    for tag_name in remove_tags:
         for tag in soup.find_all(tag_name):
             tag.decompose()
+
+    if include_images:
+        return
 
     for tag in soup.find_all(True):
         if not isinstance(tag, Tag) or tag.attrs is None:
@@ -52,6 +78,44 @@ def _strip_layout(soup: BeautifulSoup) -> None:
         tag_id = tag.get("id", "")
         if "sidebar" in classes or "sidebar" in tag_id:
             tag.decompose()
+
+
+def _extract_images(soup: BeautifulSoup, base_url: str) -> list[ImageReference]:
+    images: list[ImageReference] = []
+
+    for image in soup.find_all("img", src=True):
+        src = image.get("src", "")
+        absolute = urljoin(base_url, src)
+        normalized = _normalize_url(absolute)
+        if not normalized:
+            continue
+        alt_text = image.get("alt", "").strip()
+        token = f"[[IMAGE_{len(images)}]]"
+        images.append(ImageReference(token=token, url=normalized, alt=alt_text))
+        placeholder = soup.new_tag("p")
+        placeholder.string = token
+        image.replace_with(placeholder)
+
+    url_pattern = re.compile(r"url\((?P<quote>['\"]?)(?P<url>[^)'\"]+)(?P=quote)\)")
+    for tag in soup.find_all(True):
+        if not isinstance(tag, Tag) or tag.attrs is None:
+            continue
+        style = tag.get("style", "")
+        if "background-image" not in style:
+            continue
+        for match in url_pattern.finditer(style):
+            candidate = match.group("url")
+            absolute = urljoin(base_url, candidate)
+            normalized = _normalize_url(absolute)
+            if not normalized:
+                continue
+            token = f"[[IMAGE_{len(images)}]]"
+            images.append(ImageReference(token=token, url=normalized, alt=""))
+            placeholder = soup.new_tag("p")
+            placeholder.string = token
+            tag.insert_after(placeholder)
+
+    return images
 
 
 def _normalize_url(url: str) -> str:

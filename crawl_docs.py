@@ -24,6 +24,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=4,
         help="Number of concurrent fetch threads.",
     )
+    parser.add_argument(
+        "--include-images",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Include images (including background images) in the output Markdown.",
+    )
     return parser
 
 
@@ -36,6 +42,7 @@ def main(argv: list[str] | None = None) -> int:
         prefix=prefix,
         output_dir=args.output,
         threads=args.threads,
+        include_images=args.include_images,
     )
 
 

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Iterable
 
 from mdcrawler.crawler import Page
+from mdcrawler.markdown_writer import render_markdown
 
 
 def build_combined(pages: Iterable[Page], output_dir: Path) -> None:
@@ -11,7 +12,8 @@ def build_combined(pages: Iterable[Page], output_dir: Path) -> None:
     for page in pages:
         combined_lines.append(f"## {page.title}")
         combined_lines.append("")
-        combined_lines.extend(_shift_headings(page.markdown, shift=1).splitlines())
+        markdown = render_markdown(page, image_prefix="images/")
+        combined_lines.extend(_shift_headings(markdown, shift=1).splitlines())
         combined_lines.append("")
     (output_dir / "combined.md").write_text("\n".join(combined_lines).rstrip() + "\n", encoding="utf-8")
 
