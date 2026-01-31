@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Iterable
 from urllib.parse import urlparse
 
 import requests
 
+from mdcrawler.content_extractor import ImageReference
 from mdcrawler.crawler import Page
 
 
@@ -13,6 +15,7 @@ def write_pages(pages: Iterable[Page], output_dir: Path) -> None:
     pages_dir = output_dir / "pages"
     pages_dir.mkdir(parents=True, exist_ok=True)
     images_dir = output_dir / "images"
+    pages = list(pages)
     for page in pages:
         if page.images:
             images_dir.mkdir(parents=True, exist_ok=True)
@@ -52,19 +55,28 @@ def render_markdown(page: Page, image_prefix: str) -> str:
 
 
 def _materialize_images(page: Page, images_dir: Path) -> None:
-    for index, image in enumerate(page.images):
-        filename = _image_filename(image.url, index)
-        output_path = images_dir / filename
-        if output_path.exists():
-            image.filename = filename
-            continue
-        try:
-            response = requests.get(image.url, timeout=15)
-            response.raise_for_status()
-        except requests.RequestException:
-            continue
-        output_path.write_bytes(response.content)
+    with ThreadPoolExecutor(max_workers=min(8, max(1, len(page.images)))) as executor:
+        futures = {
+            executor.submit(_download_image, image, images_dir, index): image
+            for index, image in enumerate(page.images)
+        }
+        for future in as_completed(futures):
+            future.result()
+
+
+def _download_image(image: ImageReference, images_dir: Path, index: int) -> None:
+    filename = _image_filename(image.url, index)
+    output_path = images_dir / filename
+    if output_path.exists():
         image.filename = filename
+        return
+    try:
+        response = requests.get(image.url, timeout=15)
+        response.raise_for_status()
+    except requests.RequestException:
+        return
+    output_path.write_bytes(response.content)
+    image.filename = filename
 
 
 def _image_filename(url: str, index: int) -> str:

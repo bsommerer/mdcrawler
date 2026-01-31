@@ -20,6 +20,12 @@ def fetch_urls(urls: Iterable[str], max_workers: int) -> list[tuple[str, request
     return results
 
 
+def fetch_url(url: str) -> requests.Response:
+    response = requests.get(url, timeout=15)
+    response.raise_for_status()
+    return response
+
+
 def _fetch(url: str) -> requests.Response:
     response = requests.get(url, timeout=15)
     response.raise_for_status()

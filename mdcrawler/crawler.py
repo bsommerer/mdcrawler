@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from queue import Queue
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 from urllib.parse import urlsplit, urlunsplit
 
 from mdcrawler.content_extractor import ImageReference, extract_content
-from mdcrawler.fetcher import fetch_urls
+from mdcrawler.fetcher import fetch_url
 
 
 @dataclass
@@ -33,41 +33,43 @@ class Crawler:
         self.prefix = prefix
         self.threads = max(1, threads)
         self.include_images = include_images
-        self.queue: Queue[str] = Queue()
         self.visited: set[str] = set()
         self.lock = threading.Lock()
 
     def run(self) -> list[Page]:
         with self.lock:
             self.visited.add(self.start_url)
-            self.queue.put(self.start_url)
         pages: list[Page] = []
 
-        while True:
-            batch: list[str] = []
-            while len(batch) < self.threads and not self.queue.empty():
-                batch.append(self.queue.get())
-
-            if not batch:
-                break
-
-            results = fetch_urls(batch, self.threads)
-            for url, response in results:
-                if response is None:
-                    continue
-                content = extract_content(response.text, url, self.prefix, include_images=self.include_images)
-                if content.markdown.strip():
-                    pages.append(
-                        Page(url=url, title=content.title, markdown=content.markdown, images=content.images)
-                    )
-                self._enqueue_discovered(content.discovered_urls)
+        with ThreadPoolExecutor(max_workers=self.threads) as executor:
+            futures = {executor.submit(self._crawl_url, self.start_url): self.start_url}
+            while futures:
+                for future in as_completed(list(futures)):
+                    futures.pop(future, None)
+                    result = future.result()
+                    if result is None:
+                        continue
+                    page, discovered = result
+                    if page.markdown.strip():
+                        pages.append(page)
+                    for url in discovered:
+                        if self._mark_visited(url):
+                            futures[executor.submit(self._crawl_url, url)] = url
 
         return pages
 
-    def _enqueue_discovered(self, urls: list[str]) -> None:
+    def _mark_visited(self, url: str) -> bool:
         with self.lock:
-            for url in urls:
-                if url in self.visited:
-                    continue
-                self.visited.add(url)
-                self.queue.put(url)
+            if url in self.visited:
+                return False
+            self.visited.add(url)
+            return True
+
+    def _crawl_url(self, url: str) -> tuple[Page, list[str]] | None:
+        try:
+            response = fetch_url(url)
+        except Exception:
+            return None
+        content = extract_content(response.text, url, self.prefix, include_images=self.include_images)
+        page = Page(url=url, title=content.title, markdown=content.markdown, images=content.images)
+        return page, content.discovered_urls
