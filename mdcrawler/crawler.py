@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
+import time
 from urllib.parse import urlsplit, urlunsplit
 
 from mdcrawler.content_extractor import ImageReference, extract_content
@@ -48,6 +49,9 @@ class Crawler:
         with self.lock:
             self.visited.add(self.start_url)
         pages: list[Page] = []
+        start_time = time.monotonic()
+        processed = 0
+        last_log = start_time
 
         with ThreadPoolExecutor(max_workers=self.threads) as executor:
             futures = {executor.submit(self._crawl_url, self.start_url): self.start_url}
@@ -55,7 +59,10 @@ class Crawler:
                 for future in as_completed(list(futures)):
                     futures.pop(future, None)
                     result = future.result()
+                    processed += 1
                     if result is None:
+                        self._log_progress(start_time, processed, last_log)
+                        last_log = time.monotonic()
                         continue
                     page, discovered = result
                     if page.markdown.strip():
@@ -63,6 +70,8 @@ class Crawler:
                     for url in discovered:
                         if self._mark_visited(url):
                             futures[executor.submit(self._crawl_url, url)] = url
+                    self._log_progress(start_time, processed, last_log)
+                    last_log = time.monotonic()
 
         return pages
 
@@ -72,6 +81,22 @@ class Crawler:
                 return False
             self.visited.add(url)
             return True
+
+    def _log_progress(self, start_time: float, processed: int, last_log: float) -> None:
+        now = time.monotonic()
+        if now - last_log < 0.5:
+            return
+        with self.lock:
+            discovered = len(self.visited)
+        elapsed = max(now - start_time, 0.001)
+        rate = processed / elapsed
+        remaining = max(discovered - processed, 0)
+        eta_seconds = remaining / rate if rate > 0 else 0.0
+        print(
+            f"Crawled {processed}/{discovered} pages | "
+            f"Elapsed {elapsed:.1f}s | ETA {eta_seconds:.1f}s",
+            flush=True,
+        )
 
     def _crawl_url(self, url: str) -> tuple[Page, list[str]] | None:
         try:
