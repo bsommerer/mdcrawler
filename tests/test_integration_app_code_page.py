@@ -15,6 +15,7 @@ def test_app_code_introduction_contains_expected_strings() -> None:
         blacklist=["navigation", "sidebar", "contents", "toolbar", "pagination", "footer"],
     )
     markdown = result.markdown
+    normalized = " ".join(markdown.split())
 
     assert (
         "Take full control of your Base44 apps with direct code access. Edit code directly, debug API calls, "
@@ -38,3 +39,28 @@ def test_app_code_introduction_contains_expected_strings() -> None:
     assert "discord" not in markdown.lower()
     assert "Powered by" not in markdown
     assert "Project Structure" not in markdown
+    assert "⌘ I" not in markdown
+
+
+def test_code_tab_page_contains_expected_strings() -> None:
+    url = "https://docs.base44.com/developers/app-code/editor/code-tab"
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
+
+    result = extract_content(
+        response.text,
+        base_url=url,
+        prefix="https://docs.base44.com/developers/",
+        blacklist=["navigation", "sidebar", "contents", "toolbar", "pagination", "footer"],
+    )
+    markdown = result.markdown
+    normalized = " ".join(markdown.split())
+
+    assert "Can I edit every part of my app's code?" in markdown
+    assert (
+        "Yes. You can open and edit any code file that appears in the Code files "
+        "panel, including pages, components, layouts, and entity helpers. If a part "
+        "of the app is generated for you, it still appears as regular code that you "
+        "can modify."
+        in normalized
+    )

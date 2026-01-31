@@ -147,6 +147,8 @@ def _html_to_markdown(
         "div",
         "header",
         "section",
+        "details",
+        "summary",
     }
     allowed_parents = {
         "[document]",
@@ -162,7 +164,10 @@ def _html_to_markdown(
         "ul",
         "ol",
         "li",
+        "details",
+        "summary",
     }
+    disallowed_descendants = {"button", "input", "textarea", "select"}
     lines: list[str] = []
     body = soup.body or soup
     for element in body.find_all(block_tags):
@@ -171,6 +176,8 @@ def _html_to_markdown(
         if not _has_allowed_ancestors(element, allowed_parents):
             continue
         if content_roots and not _is_within_roots(element, content_roots):
+            continue
+        if _has_disallowed_descendant(element, disallowed_descendants):
             continue
         if blacklist and _matches_blacklist(element, blacklist):
             continue
@@ -208,6 +215,15 @@ def _has_block_child(element: Tag, block_tags: set[str]) -> bool:
         if child is element:
             continue
         if child.name in block_tags and child.name not in {"div", "header", "section"}:
+            return True
+    return False
+
+
+def _has_disallowed_descendant(element: Tag, disallowed: set[str]) -> bool:
+    for child in element.find_all(True):
+        if child is element:
+            continue
+        if child.name in disallowed:
             return True
     return False
 
