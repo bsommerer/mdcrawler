@@ -171,6 +171,8 @@ def _html_to_markdown(
     lines: list[str] = []
     body = soup.body or soup
     for element in body.find_all(block_tags):
+        if element.find_parent("details") is not None and element.name != "details":
+            continue
         if element.name in {"div", "header", "section"} and _has_block_child(element, block_tags):
             continue
         if not _has_allowed_ancestors(element, allowed_parents):
@@ -181,8 +183,14 @@ def _html_to_markdown(
             continue
         if blacklist and _matches_blacklist(element, blacklist):
             continue
+        if element.name == "summary":
+            continue
         text = element.get_text(" ", strip=True)
         if not text:
+            continue
+        if element.name == "details":
+            lines.extend(_details_to_markdown(element))
+            lines.append("")
             continue
         if element.name == "p" and _is_strong_only(element):
             lines.append(f"# {text}")
@@ -226,6 +234,24 @@ def _has_disallowed_descendant(element: Tag, disallowed: set[str]) -> bool:
         if child.name in disallowed:
             return True
     return False
+
+
+def _details_to_markdown(details: Tag) -> list[str]:
+    lines: list[str] = []
+    summary = details.find("summary")
+    summary_text = summary.get_text(" ", strip=True) if summary else ""
+    if summary_text:
+        lines.append(f"## {summary_text}")
+    body_texts: list[str] = []
+    for child in details.find_all(True, recursive=False):
+        if child is summary:
+            continue
+        text = child.get_text(" ", strip=True)
+        if text:
+            body_texts.append(text)
+    if body_texts:
+        lines.append(" ".join(body_texts))
+    return lines
 
 
 def _has_allowed_ancestors(element: Tag, allowed_parents: set[str]) -> bool:
