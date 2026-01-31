@@ -37,3 +37,4 @@ def test_app_code_introduction_contains_expected_strings() -> None:
     assert "Was this page helpful?" not in markdown
     assert "discord" not in markdown.lower()
     assert "Powered by" not in markdown
+    assert "Project Structure" not in markdown

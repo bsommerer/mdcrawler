@@ -223,7 +223,7 @@ def _has_allowed_ancestors(element: Tag, allowed_parents: set[str]) -> bool:
 
 
 def _matches_blacklist(element: Tag, blacklist: list[str]) -> bool:
-    for parent in element.parents:
+    for parent in [element, *element.parents]:
         if not isinstance(parent, Tag) or parent.attrs is None:
             continue
         class_tokens = [token.lower() for token in parent.get("class", [])]
