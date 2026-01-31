@@ -8,7 +8,12 @@ def test_app_code_introduction_contains_expected_strings() -> None:
     response = requests.get(url, timeout=30)
     response.raise_for_status()
 
-    result = extract_content(response.text, base_url=url, prefix="https://docs.base44.com/developers/")
+    result = extract_content(
+        response.text,
+        base_url=url,
+        prefix="https://docs.base44.com/developers/",
+        blacklist=["navigation", "sidebar", "contents", "toolbar", "pagination", "footer"],
+    )
     markdown = result.markdown
 
     assert (
@@ -26,3 +31,9 @@ def test_app_code_introduction_contains_expected_strings() -> None:
         in markdown
     )
     assert "to explore and edit your app’s source code." in markdown
+    assert "Search..." not in markdown
+    assert "Ask AI" not in markdown
+    assert "On this page" not in markdown
+    assert "Was this page helpful?" not in markdown
+    assert "discord" not in markdown.lower()
+    assert "Powered by" not in markdown

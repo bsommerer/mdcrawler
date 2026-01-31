@@ -12,6 +12,7 @@ Optional flags:
 - `--threads`: Number of concurrent fetch threads (default: 4).
 - `--output`: Output directory for Markdown files (default: `output`).
 - `--include-images` / `--no-include-images`: Include images (including background images) and save them under `images/` (default: disabled).
+- `--blacklist`: Comma-separated list of class/id tokens to exclude from extraction (default: `navigation,sidebar,contents,toolbar,pagination,footer`).
 
 ## Example output structure
 

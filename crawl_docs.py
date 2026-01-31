@@ -30,6 +30,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=False,
         help="Include images (including background images) in the output Markdown.",
     )
+    parser.add_argument(
+        "--blacklist",
+        default="navigation,sidebar,contents,toolbar,pagination,footer",
+        help="Comma-separated list of strings not allowed in class/id attributes.",
+    )
     return parser
 
 
@@ -43,6 +48,7 @@ def main(argv: list[str] | None = None) -> int:
         output_dir=args.output,
         threads=args.threads,
         include_images=args.include_images,
+        blacklist=args.blacklist.split(",") if args.blacklist else [],
     )
 
 

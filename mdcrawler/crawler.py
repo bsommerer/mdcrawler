@@ -28,11 +28,19 @@ def derive_prefix(start_url: str) -> str:
 
 
 class Crawler:
-    def __init__(self, start_url: str, prefix: str, threads: int = 4, include_images: bool = False) -> None:
+    def __init__(
+        self,
+        start_url: str,
+        prefix: str,
+        threads: int = 4,
+        include_images: bool = False,
+        blacklist: list[str] | None = None,
+    ) -> None:
         self.start_url = start_url
         self.prefix = prefix
         self.threads = max(1, threads)
         self.include_images = include_images
+        self.blacklist = blacklist or []
         self.visited: set[str] = set()
         self.lock = threading.Lock()
 
@@ -70,6 +78,12 @@ class Crawler:
             response = fetch_url(url)
         except Exception:
             return None
-        content = extract_content(response.text, url, self.prefix, include_images=self.include_images)
+        content = extract_content(
+            response.text,
+            url,
+            self.prefix,
+            include_images=self.include_images,
+            blacklist=self.blacklist,
+        )
         page = Page(url=url, title=content.title, markdown=content.markdown, images=content.images)
         return page, content.discovered_urls

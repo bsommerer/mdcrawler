@@ -24,9 +24,16 @@ class ImageReference:
     filename: str | None = None
 
 
-def extract_content(html: str, base_url: str, prefix: str, include_images: bool = False) -> ExtractedContent:
+def extract_content(
+    html: str,
+    base_url: str,
+    prefix: str,
+    include_images: bool = False,
+    blacklist: list[str] | None = None,
+) -> ExtractedContent:
     soup = BeautifulSoup(html, "html.parser")
     images: list[ImageReference] = []
+    blacklist = [item.lower() for item in (blacklist or []) if item]
     if include_images:
         images = _extract_images(soup, base_url)
     _promote_data_as_tags(soup)
@@ -51,7 +58,8 @@ def extract_content(html: str, base_url: str, prefix: str, include_images: bool 
     title_tag = soup.find("title")
     title = title_tag.get_text(strip=True) if title_tag else base_url
 
-    markdown = _html_to_markdown(soup)
+    content_roots = _content_roots(soup)
+    markdown = _html_to_markdown(soup, blacklist, content_roots)
     return ExtractedContent(
         title=title,
         markdown=markdown,
@@ -120,7 +128,11 @@ def _normalize_url(url: str) -> str:
     return urlunsplit((parts.scheme, parts.netloc, path, parts.query, ""))
 
 
-def _html_to_markdown(soup: BeautifulSoup) -> str:
+def _html_to_markdown(
+    soup: BeautifulSoup,
+    blacklist: list[str],
+    content_roots: list[Tag],
+) -> str:
     block_tags = {
         "h1",
         "h2",
@@ -136,10 +148,31 @@ def _html_to_markdown(soup: BeautifulSoup) -> str:
         "header",
         "section",
     }
+    allowed_parents = {
+        "[document]",
+        "html",
+        "body",
+        "main",
+        "article",
+        "section",
+        "div",
+        "span",
+        "header",
+        "p",
+        "ul",
+        "ol",
+        "li",
+    }
     lines: list[str] = []
     body = soup.body or soup
     for element in body.find_all(block_tags):
         if element.name in {"div", "header", "section"} and _has_block_child(element, block_tags):
+            continue
+        if not _has_allowed_ancestors(element, allowed_parents):
+            continue
+        if content_roots and not _is_within_roots(element, content_roots):
+            continue
+        if blacklist and _matches_blacklist(element, blacklist):
             continue
         text = element.get_text(" ", strip=True)
         if not text:
@@ -176,6 +209,36 @@ def _has_block_child(element: Tag, block_tags: set[str]) -> bool:
             continue
         if child.name in block_tags and child.name not in {"div", "header", "section"}:
             return True
+    return False
+
+
+def _has_allowed_ancestors(element: Tag, allowed_parents: set[str]) -> bool:
+    parent = element.parent
+    while parent is not None:
+        if isinstance(parent, Tag):
+            if parent.name not in allowed_parents:
+                return False
+        parent = parent.parent
+    return True
+
+
+def _matches_blacklist(element: Tag, blacklist: list[str]) -> bool:
+    for parent in element.parents:
+        if not isinstance(parent, Tag) or parent.attrs is None:
+            continue
+        class_tokens = [token.lower() for token in parent.get("class", [])]
+        for token in class_tokens:
+            sub_tokens = {token}
+            for part in token.replace("_", "-").split("-"):
+                if part:
+                    sub_tokens.add(part)
+            if any(term in sub_tokens for term in blacklist):
+                return True
+        tag_id = parent.get("id", "")
+        if tag_id:
+            id_tokens = re.split(r"[^a-zA-Z0-9]+", tag_id.lower())
+            if any(term in id_tokens for term in blacklist):
+                return True
     return False
 
 
@@ -216,3 +279,24 @@ def _promote_data_as_tags(soup: BeautifulSoup) -> None:
         value = tag.get("data-as", "").strip().lower()
         if value in allowed:
             tag.name = value
+
+
+def _content_roots(soup: BeautifulSoup) -> list[Tag]:
+    roots: list[Tag] = []
+    for tag_name in ("main", "article"):
+        for tag in soup.find_all(tag_name):
+            roots.append(tag)
+    for tag in soup.find_all(attrs={"data-page-title": True}):
+        roots.append(tag)
+    for tag in soup.find_all(id=True):
+        tag_id = tag.get("id", "").lower()
+        if "content" in tag_id:
+            roots.append(tag)
+    return roots
+
+
+def _is_within_roots(element: Tag, roots: list[Tag]) -> bool:
+    for parent in element.parents:
+        if parent in roots:
+            return True
+    return False

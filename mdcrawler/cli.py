@@ -8,11 +8,24 @@ from mdcrawler.markdown_writer import write_index, write_pages
 from mdcrawler.title_normalizer import normalize_titles
 
 
-def run(start_url: str, prefix: str, output_dir: str, threads: int, include_images: bool) -> int:
+def run(
+    start_url: str,
+    prefix: str,
+    output_dir: str,
+    threads: int,
+    include_images: bool,
+    blacklist: list[str],
+) -> int:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    crawler = Crawler(start_url=start_url, prefix=prefix, threads=threads, include_images=include_images)
+    crawler = Crawler(
+        start_url=start_url,
+        prefix=prefix,
+        threads=threads,
+        include_images=include_images,
+        blacklist=blacklist,
+    )
     pages = crawler.run()
     if not pages:
         return 1

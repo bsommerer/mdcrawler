@@ -11,7 +11,12 @@ def test_extract_content_rewrites_links_and_discovers_internal_urls() -> None:
       </body>
     </html>
     """
-    result = extract_content(html, base_url="https://example.com/docs/start", prefix="https://example.com/docs/")
+    result = extract_content(
+        html,
+        base_url="https://example.com/docs/start",
+        prefix="https://example.com/docs/",
+        blacklist=[],
+    )
 
     assert "Internal" in result.markdown
     assert "[External](https://external.com/page)" in result.markdown
@@ -32,6 +37,7 @@ def test_extract_content_includes_images_and_backgrounds() -> None:
         base_url="https://example.com/docs/start",
         prefix="https://example.com/docs/",
         include_images=True,
+        blacklist=[],
     )
 
     tokens = [image.token for image in result.images]
@@ -53,7 +59,12 @@ def test_extract_content_converts_tables() -> None:
       </body>
     </html>
     """
-    result = extract_content(html, base_url="https://example.com", prefix="https://example.com/")
+    result = extract_content(
+        html,
+        base_url="https://example.com",
+        prefix="https://example.com/",
+        blacklist=[],
+    )
 
     assert "| Name | Value |" in result.markdown
     assert "| One | 1 |" in result.markdown
