@@ -15,7 +15,8 @@ def test_extract_content_rewrites_links_and_discovers_internal_urls() -> None:
         html,
         base_url="https://example.com/docs/start",
         prefix="https://example.com/docs/",
-        blacklist=[],
+        tag_blacklist=[],
+        attr_blacklist=[],
     )
 
     assert "Internal" in result.markdown
@@ -37,7 +38,8 @@ def test_extract_content_includes_images_and_backgrounds() -> None:
         base_url="https://example.com/docs/start",
         prefix="https://example.com/docs/",
         include_images=True,
-        blacklist=[],
+        tag_blacklist=[],
+        attr_blacklist=[],
     )
 
     tokens = [image.token for image in result.images]
@@ -63,8 +65,63 @@ def test_extract_content_converts_tables() -> None:
         html,
         base_url="https://example.com",
         prefix="https://example.com/",
-        blacklist=[],
+        tag_blacklist=[],
+        attr_blacklist=[],
     )
 
     assert "| Name | Value |" in result.markdown
     assert "| One | 1 |" in result.markdown
+
+
+def test_tag_blacklist_filters_elements() -> None:
+    """Test that tag blacklist filters elements and their content."""
+    html = """
+    <html>
+      <body>
+        <p>Visible content</p>
+        <nav><p>Navigation content</p></nav>
+        <aside><p>Sidebar content</p></aside>
+        <p>More visible content</p>
+      </body>
+    </html>
+    """
+    result = extract_content(
+        html,
+        base_url="https://example.com",
+        prefix="https://example.com/",
+        tag_blacklist=["nav", "aside"],
+        attr_blacklist=[],
+    )
+
+    assert "Visible content" in result.markdown
+    assert "More visible content" in result.markdown
+    assert "Navigation content" not in result.markdown
+    assert "Sidebar content" not in result.markdown
+
+
+def test_attr_blacklist_filters_by_class_and_id() -> None:
+    """Test that attr blacklist filters elements by class and id."""
+    html = """
+    <html>
+      <body>
+        <p>Visible content</p>
+        <div class="sidebar-nav"><p>Sidebar content</p></div>
+        <div id="footer-section"><p>Footer content</p></div>
+        <div class="absolute top-0"><p>Overlay content</p></div>
+        <p>More visible content</p>
+      </body>
+    </html>
+    """
+    result = extract_content(
+        html,
+        base_url="https://example.com",
+        prefix="https://example.com/",
+        tag_blacklist=[],
+        attr_blacklist=["sidebar", "footer", "absolute"],
+    )
+
+    assert "Visible content" in result.markdown
+    assert "More visible content" in result.markdown
+    assert "Sidebar content" not in result.markdown
+    assert "Footer content" not in result.markdown
+    assert "Overlay content" not in result.markdown

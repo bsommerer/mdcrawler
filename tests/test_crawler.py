@@ -30,7 +30,8 @@ def test_crawler_recurses_and_visits_discovered_urls(monkeypatch: pytest.MonkeyP
         prefix="https://example.com/docs/",
         threads=2,
         include_images=False,
-        blacklist=[],
+        tag_blacklist=[],
+        attr_blacklist=[],
     )
     results = crawler.run()
 

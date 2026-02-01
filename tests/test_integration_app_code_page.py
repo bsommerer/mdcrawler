@@ -12,7 +12,7 @@ def test_app_code_introduction_contains_expected_strings() -> None:
         response.text,
         base_url=url,
         prefix="https://docs.base44.com/developers/",
-        blacklist=["navigation", "sidebar", "contents", "toolbar", "pagination", "footer"],
+        # Use defaults for both blacklists
     )
     markdown = result.markdown
     normalized = " ".join(markdown.split())
@@ -31,7 +31,7 @@ def test_app_code_introduction_contains_expected_strings() -> None:
         "to access data, auth, integrations, and more."
         in markdown
     )
-    assert "to explore and edit your app’s source code." in markdown
+    assert "to explore and edit your app's source code." in markdown or "to explore and edit your app\u2019s source code." in markdown
     assert "Search..." not in markdown
     assert "Ask AI" not in markdown
     assert "On this page" not in markdown
@@ -40,6 +40,33 @@ def test_app_code_introduction_contains_expected_strings() -> None:
     assert "Powered by" not in markdown
     assert "Project Structure" not in markdown
     assert "⌘ I" not in markdown
+
+
+def test_github_page_filters_copy_and_ask_ai_buttons() -> None:
+    """Test that Copy and Ask AI buttons in code blocks are filtered out."""
+    url = "https://docs.base44.com/developers/app-code/local-development/github"
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
+
+    result = extract_content(
+        response.text,
+        base_url=url,
+        prefix="https://docs.base44.com/developers/",
+        # Use defaults for both blacklists
+    )
+    markdown = result.markdown
+
+    # Verify expected content is present
+    assert "# GitHub Integration" in markdown
+    assert "Connect your Base44 app to GitHub" in markdown
+    assert "npm run dev" in markdown or "npmrundev" in markdown
+
+    # Verify UI buttons are NOT present
+    assert "Copy" not in markdown, "Copy button text should be filtered out"
+    assert "Ask AI" not in markdown, "Ask AI button text should be filtered out"
+
+    # Check that code blocks are still present
+    assert "```" in markdown, "Code blocks should still be present"
 
 
 def test_code_tab_page_contains_expected_strings() -> None:
@@ -51,7 +78,7 @@ def test_code_tab_page_contains_expected_strings() -> None:
         response.text,
         base_url=url,
         prefix="https://docs.base44.com/developers/",
-        blacklist=["navigation", "sidebar", "contents", "toolbar", "pagination", "footer"],
+        # Use defaults for both blacklists
     )
     markdown = result.markdown
     normalized = " ".join(markdown.split())

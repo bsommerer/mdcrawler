@@ -4,6 +4,7 @@ import sys
 
 from mdcrawler.cli import run
 from mdcrawler.crawler import derive_prefix
+from mdcrawler.content_extractor import DEFAULT_TAG_BLACKLIST, DEFAULT_ATTR_BLACKLIST
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -31,9 +32,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Include images (including background images) in the output Markdown.",
     )
     parser.add_argument(
-        "--blacklist",
-        default="navigation,sidebar,contents,toolbar,pagination,footer",
-        help="Comma-separated list of strings not allowed in class/id attributes.",
+        "--tag-blacklist",
+        default=",".join(DEFAULT_TAG_BLACKLIST),
+        help=(
+            "Comma-separated list of HTML tags to exclude (also excludes content within these tags). "
+            f"Default: {','.join(DEFAULT_TAG_BLACKLIST)}"
+        ),
+    )
+    parser.add_argument(
+        "--attr-blacklist",
+        default=",".join(DEFAULT_ATTR_BLACKLIST),
+        help=(
+            "Comma-separated list of strings to match against class/id attributes. "
+            f"Default: {','.join(DEFAULT_ATTR_BLACKLIST)}"
+        ),
     )
     return parser
 
@@ -42,13 +54,18 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     prefix = args.prefix or derive_prefix(args.start_url)
+
+    tag_blacklist = [t.strip() for t in args.tag_blacklist.split(",") if t.strip()] if args.tag_blacklist else None
+    attr_blacklist = [a.strip() for a in args.attr_blacklist.split(",") if a.strip()] if args.attr_blacklist else None
+
     return run(
         start_url=args.start_url,
         prefix=prefix,
         output_dir=args.output,
         threads=args.threads,
         include_images=args.include_images,
-        blacklist=args.blacklist.split(",") if args.blacklist else [],
+        tag_blacklist=tag_blacklist,
+        attr_blacklist=attr_blacklist,
     )
 
 

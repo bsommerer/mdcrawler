@@ -14,7 +14,8 @@ def run(
     output_dir: str,
     threads: int,
     include_images: bool,
-    blacklist: list[str],
+    tag_blacklist: list[str] | None,
+    attr_blacklist: list[str] | None,
 ) -> int:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -24,7 +25,8 @@ def run(
         prefix=prefix,
         threads=threads,
         include_images=include_images,
-        blacklist=blacklist,
+        tag_blacklist=tag_blacklist,
+        attr_blacklist=attr_blacklist,
     )
     pages = crawler.run()
     if not pages:
