@@ -235,3 +235,42 @@ def test_inline_formatting() -> None:
     # Code blocks should still work (no backticks inside)
     assert "```" in result.markdown
     assert "code block should not be affected" in result.markdown
+
+
+def test_images_in_picture_elements_appear_at_correct_position() -> None:
+    """Test that images inside picture/span/div wrappers appear at correct position."""
+    html = """
+    <html>
+      <body>
+        <p>First paragraph.</p>
+        <div class="frame">
+          <span>
+            <picture class="contents">
+              <img src="/images/screenshot.png" alt="Screenshot"/>
+            </picture>
+          </span>
+        </div>
+        <p>Second paragraph.</p>
+      </body>
+    </html>
+    """
+    result = extract_content(
+        html,
+        base_url="https://example.com",
+        prefix="https://example.com/",
+        include_images=True,
+        tag_blacklist=[],
+        attr_blacklist=[],
+    )
+
+    # Image token should be present
+    assert len(result.images) == 1
+    assert result.images[0].token in result.markdown
+
+    # Image should appear between the two paragraphs
+    first_para_pos = result.markdown.find("First paragraph.")
+    image_pos = result.markdown.find(result.images[0].token)
+    second_para_pos = result.markdown.find("Second paragraph.")
+    assert first_para_pos < image_pos < second_para_pos, (
+        "Image should appear between the two paragraphs"
+    )

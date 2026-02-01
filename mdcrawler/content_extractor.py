@@ -149,7 +149,19 @@ def _extract_images(soup: BeautifulSoup, base_url: str) -> list[ImageReference]:
         images.append(ImageReference(token=token, url=normalized, alt=alt_text))
         placeholder = soup.new_tag("p")
         placeholder.string = token
-        image.replace_with(placeholder)
+        # Find outermost wrapper to insert placeholder after
+        target = image
+        parent = image.parent
+        wrapper_tags = {"picture", "span", "a", "div"}
+        while parent and parent.name in wrapper_tags:
+            children = [c for c in parent.children if isinstance(c, Tag) or str(c).strip()]
+            if len(children) == 1:
+                target = parent
+                parent = parent.parent
+            else:
+                break
+        target.insert_after(placeholder)
+        image.decompose()
 
     for tag in soup.find_all(True):
         if not isinstance(tag, Tag) or tag.attrs is None:
@@ -247,7 +259,10 @@ def _html_to_markdown(soup: BeautifulSoup, content_roots: list[Tag], code_blocks
         if element.name in {"div", "header", "section"} and _has_block_child(element, block_tags):
             continue
         if content_roots and not _is_within_roots(element, content_roots):
-            continue
+            # Still include image placeholders regardless of content roots
+            text = element.get_text(strip=True)
+            if not (text.startswith("[[IMAGE_") and text.endswith("]]")):
+                continue
         if element.name == "summary":
             continue
         # Handle code block placeholders (skip if inside li - handled there)
