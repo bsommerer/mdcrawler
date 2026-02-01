@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from urllib.parse import urlsplit, urlunsplit
 
 from mdcrawler.content_extractor import ImageReference, extract_content

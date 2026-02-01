@@ -22,8 +22,11 @@ cd mdcrawler
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install the package
+pip install -e .
+
+# Or with development dependencies (for contributing)
+pip install -e ".[dev]"
 ```
 
 ## Usage
@@ -31,7 +34,7 @@ pip install -r requirements.txt
 ### Basic usage
 
 ```bash
-python crawl_docs.py --start-url https://docs.example.com/guide/intro
+mdcrawler --start-url https://docs.example.com/guide/intro
 ```
 
 This will:
@@ -42,7 +45,7 @@ This will:
 ### With all options
 
 ```bash
-python crawl_docs.py \
+mdcrawler \
   --start-url https://docs.example.com/guide/intro \
   --prefix https://docs.example.com/guide/ \
   --output ./my-docs \
@@ -85,7 +88,7 @@ output/
 ### Crawl Python documentation
 
 ```bash
-python crawl_docs.py \
+mdcrawler \
   --start-url https://docs.python.org/3/tutorial/index.html \
   --prefix https://docs.python.org/3/tutorial/
 ```
@@ -93,7 +96,7 @@ python crawl_docs.py \
 ### Crawl with images
 
 ```bash
-python crawl_docs.py \
+mdcrawler \
   --start-url https://docs.example.com/guide/intro \
   --include-images \
   --output ./docs-with-images
@@ -102,7 +105,7 @@ python crawl_docs.py \
 ### Fast crawl with more threads
 
 ```bash
-python crawl_docs.py \
+mdcrawler \
   --start-url https://docs.example.com/guide/intro \
   --threads 16
 ```
@@ -111,16 +114,28 @@ python crawl_docs.py \
 
 ```bash
 # Exclude additional elements
-python crawl_docs.py \
+mdcrawler \
   --start-url https://docs.example.com/guide/intro \
   --tag-blacklist nav,aside,footer,script,style,svg,iframe,form \
   --attr-blacklist sidebar,navigation,toolbar,toc,breadcrumb
 ```
 
-## Running Tests
+## Development
+
+### Running Tests
 
 ```bash
+make test
+# or
 pytest tests/ -v
+```
+
+### Code Quality
+
+```bash
+make format   # Auto-format code
+make lint     # Run linters (ruff, black, mypy)
+make check    # Run all checks (lint + test)
 ```
 
 ## How It Works

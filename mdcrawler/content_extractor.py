@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-
 
 # Pre-compiled regex patterns
 _ID_SPLIT_PATTERN = re.compile(r"[^a-zA-Z0-9]+")
@@ -46,7 +45,7 @@ class ExtractedContent:
     title: str
     markdown: str
     discovered_urls: list[str]
-    images: list["ImageReference"]
+    images: list[ImageReference]
 
 
 @dataclass
@@ -69,8 +68,13 @@ def extract_content(
     images: list[ImageReference] = []
 
     # Use defaults if not provided
-    tag_bl = set(t.lower() for t in (tag_blacklist if tag_blacklist is not None else DEFAULT_TAG_BLACKLIST))
-    attr_bl = [item.lower() for item in (attr_blacklist if attr_blacklist is not None else DEFAULT_ATTR_BLACKLIST)]
+    tag_bl = {
+        t.lower() for t in (tag_blacklist if tag_blacklist is not None else DEFAULT_TAG_BLACKLIST)
+    }
+    attr_bl = [
+        item.lower()
+        for item in (attr_blacklist if attr_blacklist is not None else DEFAULT_ATTR_BLACKLIST)
+    ]
 
     if include_images:
         images = _extract_images(soup, base_url)
@@ -109,7 +113,9 @@ def extract_content(
     )
 
 
-def _strip_blacklisted(soup: BeautifulSoup, tag_blacklist: set[str], attr_blacklist: list[str]) -> None:
+def _strip_blacklisted(
+    soup: BeautifulSoup, tag_blacklist: set[str], attr_blacklist: list[str]
+) -> None:
     """Remove blacklisted elements from the DOM in a single traversal."""
     # Collect elements to remove (can't modify while iterating)
     to_remove: list[Tag] = []
@@ -167,7 +173,7 @@ def _extract_images(soup: BeautifulSoup, base_url: str) -> list[ImageReference]:
         if not isinstance(tag, Tag) or tag.attrs is None:
             continue
         style = tag.get("style", "")
-        if "background-image" not in style:
+        if not isinstance(style, str) or "background-image" not in style:
             continue
         for match in _URL_PATTERN.finditer(style):
             candidate = match.group("url")
@@ -295,14 +301,19 @@ def _html_to_markdown(soup: BeautifulSoup, content_roots: list[Tag], code_blocks
             for child in element.children:
                 if isinstance(child, Tag):
                     # Check if this child contains a code-placeholder
-                    placeholder = child if child.name == "code-placeholder" else child.find("code-placeholder")
-                    if placeholder:
+                    placeholder = (
+                        child
+                        if child.name == "code-placeholder"
+                        else child.find("code-placeholder")
+                    )
+                    if placeholder and hasattr(placeholder, "get"):
                         if text_parts:
                             lines.append(f"{prefix}{' '.join(text_parts)}")
                             prefix = ""
                             text_parts = []
                             lines.append("")
-                        idx = int(placeholder.get("data-index", 0))
+                        data_index = placeholder.get("data-index", "0")
+                        idx = int(data_index) if isinstance(data_index, str) else 0
                         if idx < len(code_blocks):
                             lines.extend(["```", code_blocks[idx], "```", ""])
                     else:
@@ -338,7 +349,7 @@ def _matches_attr_blacklist(element: Tag, attr_blacklist: list[str]) -> bool:
 
     # Check id attribute
     tag_id = element.get("id", "")
-    if tag_id:
+    if tag_id and isinstance(tag_id, str):
         id_tokens = _ID_SPLIT_PATTERN.split(tag_id.lower())
         if any(term in id_tokens for term in attr_blacklist):
             return True
@@ -421,7 +432,10 @@ def _promote_data_as_tags(soup: BeautifulSoup) -> None:
     for tag in soup.find_all(attrs={"data-as": True}):
         if not isinstance(tag, Tag):
             continue
-        value = tag.get("data-as", "").strip().lower()
+        data_as = tag.get("data-as", "")
+        if not isinstance(data_as, str):
+            continue
+        value = data_as.strip().lower()
         if value in allowed:
             tag.name = value
 

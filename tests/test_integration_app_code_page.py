@@ -15,7 +15,6 @@ def test_app_code_introduction_contains_expected_strings() -> None:
         # Use defaults for both blacklists
     )
     markdown = result.markdown
-    normalized = " ".join(markdown.split())
 
     assert (
         "Take full control of your Base44 apps with direct code access. Edit code directly, debug API calls, "
@@ -28,10 +27,12 @@ def test_app_code_introduction_contains_expected_strings() -> None:
     assert "**Base44 SDK**" in markdown
     assert (
         "Your interface to all Base44 backend services. Use it in your frontend components or backend functions "
-        "to access data, auth, integrations, and more."
-        in markdown
+        "to access data, auth, integrations, and more." in markdown
     )
-    assert "to explore and edit your app's source code." in markdown or "to explore and edit your app\u2019s source code." in markdown
+    assert (
+        "to explore and edit your app's source code." in markdown
+        or "to explore and edit your app\u2019s source code." in markdown
+    )
     assert "Search..." not in markdown
     assert "Ask AI" not in markdown
     assert "On this page" not in markdown
@@ -76,9 +77,9 @@ def test_github_page_filters_copy_and_ask_ai_buttons() -> None:
     first_code_pos = markdown.find("VITE_BASE44_APP_ID=your_app_id")
     example_pos = markdown.find("*Example:*")
     second_code_pos = markdown.find("VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6")
-    assert first_code_pos < example_pos < second_code_pos, (
-        "*Example:* should appear between the two code blocks"
-    )
+    assert (
+        first_code_pos < example_pos < second_code_pos
+    ), "*Example:* should appear between the two code blocks"
 
 
 def test_code_tab_page_contains_expected_strings() -> None:
@@ -100,6 +101,5 @@ def test_code_tab_page_contains_expected_strings() -> None:
         "Yes. You can open and edit any code file that appears in the Code files "
         "panel, including pages, components, layouts, and entity helpers. If a part "
         "of the app is generated for you, it still appears as regular code that you "
-        "can modify."
-        in normalized
+        "can modify." in normalized
     )

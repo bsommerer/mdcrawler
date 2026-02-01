@@ -271,6 +271,6 @@ def test_images_in_picture_elements_appear_at_correct_position() -> None:
     first_para_pos = result.markdown.find("First paragraph.")
     image_pos = result.markdown.find(result.images[0].token)
     second_para_pos = result.markdown.find("Second paragraph.")
-    assert first_para_pos < image_pos < second_para_pos, (
-        "Image should appear between the two paragraphs"
-    )
+    assert (
+        first_para_pos < image_pos < second_para_pos
+    ), "Image should appear between the two paragraphs"
