@@ -125,3 +125,42 @@ def test_attr_blacklist_filters_by_class_and_id() -> None:
     assert "Sidebar content" not in result.markdown
     assert "Footer content" not in result.markdown
     assert "Overlay content" not in result.markdown
+
+
+def test_unordered_and_ordered_lists() -> None:
+    """Test that ul uses bullet points and ol uses numbers."""
+    html = """
+    <html>
+      <body>
+        <p>Unordered:</p>
+        <ul>
+          <li>Apple</li>
+          <li>Banana</li>
+          <li>Cherry</li>
+        </ul>
+        <p>Ordered:</p>
+        <ol>
+          <li>First step</li>
+          <li>Second step</li>
+          <li>Third step</li>
+        </ol>
+      </body>
+    </html>
+    """
+    result = extract_content(
+        html,
+        base_url="https://example.com",
+        prefix="https://example.com/",
+        tag_blacklist=[],
+        attr_blacklist=[],
+    )
+
+    # Unordered list should use bullet points
+    assert "- Apple" in result.markdown
+    assert "- Banana" in result.markdown
+    assert "- Cherry" in result.markdown
+
+    # Ordered list should use numbers
+    assert "1. First step" in result.markdown
+    assert "2. Second step" in result.markdown
+    assert "3. Third step" in result.markdown

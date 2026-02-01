@@ -231,7 +231,8 @@ def _html_to_markdown(soup: BeautifulSoup, content_roots: list[Tag]) -> str:
         elif element.name == "table":
             lines.extend(text.splitlines())
         elif element.name == "li":
-            lines.append(f"- {text}")
+            prefix = _get_list_prefix(element)
+            lines.append(f"{prefix}{text}")
         elif element.name == "pre":
             lines.append("```")
             lines.append(text)
@@ -265,6 +266,20 @@ def _matches_attr_blacklist(element: Tag, attr_blacklist: list[str]) -> bool:
             return True
 
     return False
+
+
+def _get_list_prefix(li_element: Tag) -> str:
+    """Get the appropriate prefix for a list item (bullet or number)."""
+    parent = li_element.find_parent(["ul", "ol"])
+    if parent is None or parent.name == "ul":
+        return "- "
+    # It's an ordered list - find the position
+    position = 1
+    for sibling in parent.find_all("li", recursive=False):
+        if sibling is li_element:
+            break
+        position += 1
+    return f"{position}. "
 
 
 def _is_strong_only(element: Tag) -> bool:
