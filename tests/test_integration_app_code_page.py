@@ -24,8 +24,8 @@ def test_app_code_introduction_contains_expected_strings() -> None:
     )
     assert "Build and edit Base44 apps with AI assistance and developer tools." in markdown
     assert "Base44 apps use a modern frontend stack with a fully managed backend:" in markdown
-    assert "# Frontend" in markdown
-    assert "# Base44 SDK" in markdown
+    assert "**Frontend**" in markdown
+    assert "**Base44 SDK**" in markdown
     assert (
         "Your interface to all Base44 backend services. Use it in your frontend components or backend functions "
         "to access data, auth, integrations, and more."

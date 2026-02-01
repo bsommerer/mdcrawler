@@ -224,7 +224,7 @@ def _html_to_markdown(soup: BeautifulSoup, content_roots: list[Tag]) -> str:
             lines.append("")
             continue
         if element.name == "p" and _is_strong_only(element):
-            lines.append(f"# {text}")
+            lines.append(f"**{text}**")
         elif element.name.startswith("h"):
             level = int(element.name[1])
             lines.append(f"{'#' * level} {text}")
