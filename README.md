@@ -1,60 +1,179 @@
-# MDCrawler
+<p align="center">
+  <img src="https://img.shields.io/badge/🕷️-MDCRAWLER-blueviolet?style=for-the-badge&labelColor=black" alt="MDCrawler"/>
+</p>
 
-[![CI](https://github.com/bsommerer/mdcrawler/actions/workflows/test.yml/badge.svg)](https://github.com/bsommerer/mdcrawler/actions/workflows/test.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue.svg)](https://www.python.org/downloads/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+<h1 align="center">🕷️ MDCrawler</h1>
+
+<p align="center">
+  <strong>The World's Most Advanced Documentation Harvesting System™</strong>
+</p>
+
+<p align="center">
+  <em>Trusted by mass-market developers worldwide*</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/bsommerer/mdcrawler/actions/workflows/test.yml"><img src="https://github.com/bsommerer/mdcrawler/actions/workflows/test.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue.svg" alt="Python 3.10+"></a>
+  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://mypy-lang.org/"><img src="https://www.mypy-lang.org/static/mypy_badge.svg" alt="Checked with mypy"></a>
+  <a href="http://makeapullrequest.com"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/blazingly-fast-orange?style=flat-square" alt="Blazingly Fast">
+  <img src="https://img.shields.io/badge/zero-dependencies*-green?style=flat-square" alt="Zero Dependencies">
+  <img src="https://img.shields.io/badge/powered%20by-AI%20vibes-purple?style=flat-square" alt="AI Vibes">
+  <img src="https://img.shields.io/badge/works-on%20my%20machine-blue?style=flat-square" alt="Works on my machine">
+  <img src="https://img.shields.io/badge/bugs-features-red?style=flat-square" alt="Bugs are Features">
+</p>
 
 ---
 
-> 🕷️ **Crawl any documentation site. Get clean Markdown. Feed it to your LLM.**
+<p align="center">
+  <strong>🚀 REVOLUTIONARY • 💡 INNOVATIVE • 🔥 DISRUPTIVE • 🧠 AI-READY</strong>
+</p>
 
-A command-line tool that crawls documentation websites and converts them to clean Markdown files. Useful for creating offline documentation, feeding docs to LLMs, or archiving web content.
+> ### 🕷️ *"Crawl any documentation site. Get clean Markdown. Feed it to your LLM. Change the world."*
 
-## Features
+<p align="center">
+  <a href="docs/whitepaper.pdf"><img src="https://img.shields.io/badge/📄_Read_the-Whitepaper-informational?style=for-the-badge" alt="Read the Whitepaper"></a>
+</p>
 
-- Recursively crawls all pages under a URL prefix
-- Converts HTML to clean Markdown (headings, lists, tables, code blocks, inline formatting)
-- Filters out navigation, sidebars, footers, and other non-content elements
-- Optionally downloads and includes images
-- Concurrent fetching for faster crawling
-- Generates both individual page files and a combined single-file output
+<p align="center">
+  <sub>
+    <strong>Peer-reviewed*</strong> technical whitepaper available:
+    <a href="docs/whitepaper.pdf"><em>"MDCrawler: A Revolutionary Paradigm Shift in Documentation Harvesting Technology"</em></a>
+    <br>
+    Sommerer, B. (2026). MDCrawler Industries Technical Report. DOI: 10.xxxx/notreal.2026
+  </sub>
+</p>
 
-## Installation
+---
+
+## 🌟 Why MDCrawler?
+
+While other tools are still trying to figure out how to parse HTML, **MDCrawler** has already:
+
+- 🏆 **Redefined** what it means to crawl documentation
+- 🚀 **Disrupted** the web scraping industry
+- 🧠 **Pioneered** LLM-ready documentation harvesting
+- ⚡ **Achieved** unprecedented levels of Markdown purity
+- 🎯 **Revolutionized** the developer experience
+
+<details>
+<summary><strong>📊 Impressive Statistics That Will Blow Your Mind</strong></summary>
+
+| Metric | Value |
+|--------|-------|
+| Lines of Code | **~850** (yes, that's all it takes to change the world) |
+| Test Coverage | **We have tests** |
+| Stars | ⭐ (yours could be the first!) |
+| Downloads | **Incalculable** |
+| Industry Awards | **Pending** |
+| Carbon Footprint | **Probably fine** |
+
+</details>
+
+---
+
+## ✨ Features That Will Make You Cry (Happy Tears)
+
+<table>
+<tr>
+<td width="50%">
+
+### 🕸️ Intelligent Crawling
+Our **state-of-the-art** recursive crawling engine uses advanced algorithms (for loops) to discover every page.
+
+</td>
+<td width="50%">
+
+### ⚡ Blazingly Fast™
+Powered by `concurrent.futures` - the same technology used by... other Python projects!
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🧹 Smart Filtering
+AI-inspired blacklist technology (if statements) removes unwanted content with surgical precision.
+
+</td>
+<td width="50%">
+
+### 📝 Pure Markdown
+Converts HTML to Markdown so clean, you could eat off it. (Please don't.)
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🖼️ Image Harvesting
+Downloads images because sometimes words aren't enough to express documentation.
+
+</td>
+<td width="50%">
+
+### 📦 Zero Config*
+Works out of the box! Just provide a URL. And a prefix. And maybe some options.
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 Quick Start (Your Life Will Never Be The Same)
 
 ```bash
-# Clone the repository
+# Install this masterpiece
+pip install -e .
+
+# Experience documentation enlightenment
+mdcrawler --start-url https://docs.python.org/3/tutorial/
+
+# Witness the magic ✨
+ls output/
+```
+
+**That's it.** You've just joined the revolution.
+
+---
+
+## 💻 Installation
+
+```bash
+# Clone the repository (you're making history)
 git clone <repository-url>
 cd mdcrawler
 
-# Create a virtual environment (recommended)
+# Create a virtual environment (best practices matter)
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install the package
+# Install and ascend to a higher plane of existence
 pip install -e .
 
-# Or with development dependencies (for contributing)
+# Want to contribute to greatness?
 pip install -e ".[dev]"
 ```
 
-## Usage
+---
 
-### Basic usage
+## 🎮 Usage
+
+### The Simple Way (For Mortals)
 
 ```bash
 mdcrawler --start-url https://docs.example.com/guide/intro
 ```
 
-This will:
-1. Start crawling from the given URL
-2. Follow all links under `https://docs.example.com/guide/`
-3. Save Markdown files to the `output/` directory
-
-### With all options
+### The Power User Way (For Legends)
 
 ```bash
 mdcrawler \
@@ -67,46 +186,96 @@ mdcrawler \
   --attr-blacklist sidebar,navigation,toolbar
 ```
 
-## CLI Options
+### The "I Read The Docs" Way (Maximum Respect)
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--start-url` | (required) | The URL to start crawling from |
-| `--prefix` | auto | URL prefix to limit crawling scope. Only pages starting with this prefix are crawled. Defaults to start URL without the last path segment |
-| `--output` | `output` | Directory where Markdown files are saved |
-| `--threads` | `4` | Number of concurrent fetch threads |
-| `--include-images` | disabled | Download images and include them in Markdown output |
-| `--no-include-images` | (default) | Do not include images |
-| `--tag-blacklist` | `nav,aside,footer,form,button,input,textarea,select,noscript,script,style,svg,iframe` | HTML tags to exclude (content inside these tags is removed) |
-| `--attr-blacklist` | `navigation,sidebar,contents,toolbar,pagination,footer,absolute` | Strings to match against class/id attributes for exclusion |
+| `--start-url` | (required) | The URL where your journey begins |
+| `--prefix` | auto | URL prefix to limit crawling scope |
+| `--output` | `output` | Where the magic happens |
+| `--threads` | `4` | Parallel universe threads |
+| `--include-images` | disabled | Harvest the visuals too |
+| `--tag-blacklist` | *sensible defaults* | HTML tags to banish |
+| `--attr-blacklist` | *sensible defaults* | Classes/IDs to eliminate |
 
-## Output Structure
+---
+
+## 📁 Output Structure (Artisanally Crafted)
 
 ```
 output/
-├── combined.md          # All pages combined into one file
-├── index.md             # Table of contents with links
-├── images/              # Downloaded images (if --include-images)
-│   ├── docs-example-com-logo.png
-│   └── docs-example-com-hero.jpg
-└── pages/               # Individual page files
-    ├── docs-example-com-guide-intro.md
-    ├── docs-example-com-guide-setup.md
-    └── docs-example-com-guide-api.md
+├── combined.md          # 📖 The Tome of All Knowledge
+├── index.md             # 🗂️ Your Table of Contents
+├── images/              # 🖼️ Visual Treasures
+│   ├── logo.png
+│   └── hero.jpg
+└── pages/               # 📄 Individual Scrolls of Wisdom
+    ├── intro.md
+    ├── setup.md
+    └── api.md
 ```
 
-## Examples
+---
 
-### Crawl Python documentation
+## 🏗️ Architecture (Enterprise-Grade™)
 
+```
+                            ╔═══════════════════════════════════════╗
+                            ║      M D C R A W L E R   v0.1.0       ║
+                            ║   "It's not a bug, it's a feature"    ║
+                            ╚═══════════════════════════════════════╝
+                                              │
+                    ┌─────────────────────────┼─────────────────────────┐
+                    │                         │                         │
+                    ▼                         ▼                         ▼
+           ┌───────────────┐         ┌───────────────┐         ┌───────────────┐
+           │   🌐 FETCH    │         │   🔬 EXTRACT  │         │   📝 CONVERT  │
+           │               │         │               │         │               │
+           │  requests +   │────────▶│ BeautifulSoup │────────▶│   Markdown    │
+           │  threading    │         │    magic      │         │   alchemy     │
+           └───────────────┘         └───────────────┘         └───────────────┘
+                    │                         │                         │
+                    │                         │                         │
+                    ▼                         ▼                         ▼
+           ┌─────────────────────────────────────────────────────────────────┐
+           │                        💾 OUTPUT                                │
+           │                                                                 │
+           │   combined.md  +  index.md  +  pages/*.md  +  images/*         │
+           │                                                                 │
+           │                    "Pure. Markdown. Bliss."                     │
+           └─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🧪 Development (Join The Elite)
+
+```bash
+# Run tests (we have them!)
+make test
+
+# Format code (beauty matters)
+make format
+
+# Lint everything (quality is not negotiable)
+make lint
+
+# The full experience
+make check
+```
+
+---
+
+## 🎯 Real-World Examples
+
+### 📚 Crawl Python Docs (Classic)
 ```bash
 mdcrawler \
   --start-url https://docs.python.org/3/tutorial/index.html \
   --prefix https://docs.python.org/3/tutorial/
 ```
 
-### Crawl with images
-
+### 🖼️ Crawl With Images (Premium Experience)
 ```bash
 mdcrawler \
   --start-url https://docs.example.com/guide/intro \
@@ -114,66 +283,57 @@ mdcrawler \
   --output ./docs-with-images
 ```
 
-### Fast crawl with more threads
-
+### ⚡ Speed Run (16 Threads, No Mercy)
 ```bash
 mdcrawler \
   --start-url https://docs.example.com/guide/intro \
   --threads 16
 ```
 
-### Custom filtering
+---
 
-```bash
-# Exclude additional elements
-mdcrawler \
-  --start-url https://docs.example.com/guide/intro \
-  --tag-blacklist nav,aside,footer,script,style,svg,iframe,form \
-  --attr-blacklist sidebar,navigation,toolbar,toc,breadcrumb
-```
+## 🤝 Contributing
 
-## Development
+We welcome contributions from developers who understand true greatness.
 
-### Running Tests
+1. Fork it
+2. Branch it (`git checkout -b feature/amazing-feature`)
+3. Commit it (`git commit -m 'Add amazing feature'`)
+4. Push it (`git push origin feature/amazing-feature`)
+5. PR it
 
-```bash
-make test
-# or
-pytest tests/ -v
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the sacred texts.
 
-### Code Quality
+---
 
-```bash
-make format   # Auto-format code
-make lint     # Run linters (ruff, black, mypy)
-make check    # Run all checks (lint + test)
-```
+## 📜 License
 
-## How It Works
+MIT - Because sharing is caring.
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Fetch     │────▶│   Extract   │────▶│   Convert   │────▶│   Output    │
-│   HTML      │     │   Content   │     │ to Markdown │     │   Files     │
-└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
-      │                   │                   │                   │
-      ▼                   ▼                   ▼                   ▼
-  Concurrent          Removes nav,       Headings, lists,    Individual +
-  fetching            sidebars, etc.     tables, code        combined .md
-```
+---
 
-1. **Fetching**: Fetches HTML pages concurrently using the specified number of threads
-2. **Extraction**: Parses HTML with BeautifulSoup and extracts main content
-3. **Filtering**: Removes blacklisted tags and elements matching blacklisted class/id patterns
-4. **Conversion**: Converts remaining HTML to Markdown (headings, lists, tables, code blocks, inline formatting)
-5. **Link Discovery**: Finds internal links within the prefix scope for recursive crawling
-6. **Output**: Writes individual Markdown files and a combined file with all content
+## 🙏 Acknowledgments
+
+- **BeautifulSoup** - For making HTML bearable
+- **Requests** - For making HTTP human
+- **Python** - For existing
+- **Coffee** - For making this possible
+- **You** - For reading this far
 
 ---
 
 <p align="center">
-  Made with ❤️ and 🐍 Python
-  <br>
-  <sub>Built with BeautifulSoup • Powered by concurrent.futures</sub>
+  <img src="https://img.shields.io/badge/Made%20with-❤️%20and%20🐍-red?style=for-the-badge" alt="Made with love and Python">
+</p>
+
+<p align="center">
+  <strong>Built with BeautifulSoup • Powered by concurrent.futures • Mass-market approved by masses</strong>
+</p>
+
+<p align="center">
+  <sub>* "Zero dependencies" excludes dependencies. "Trusted by mass-market developers" based on mass-market self-evaluation.</sub>
+</p>
+
+<p align="center">
+  <sub>© 2026 MDCrawler Industries™ - A Division of "It Works On My Machine" Enterprises</sub>
 </p>
