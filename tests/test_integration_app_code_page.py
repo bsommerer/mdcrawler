@@ -68,6 +68,18 @@ def test_github_page_filters_copy_and_ask_ai_buttons() -> None:
     # Check that code blocks are still present
     assert "```" in markdown, "Code blocks should still be present"
 
+    # Check inline formatting is preserved
+    assert "*Example:*" in markdown, "Italic Example: should be present"
+    assert "`npm install`" in markdown, "Inline code should be present"
+
+    # Verify *Example:* appears between the two code blocks, not before them
+    first_code_pos = markdown.find("VITE_BASE44_APP_ID=your_app_id")
+    example_pos = markdown.find("*Example:*")
+    second_code_pos = markdown.find("VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6")
+    assert first_code_pos < example_pos < second_code_pos, (
+        "*Example:* should appear between the two code blocks"
+    )
+
 
 def test_code_tab_page_contains_expected_strings() -> None:
     url = "https://docs.base44.com/developers/app-code/editor/code-tab"

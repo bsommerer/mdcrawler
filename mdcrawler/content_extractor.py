@@ -78,6 +78,8 @@ def extract_content(
     _strip_blacklisted(soup, tag_bl, attr_bl)
     _strip_layout(soup, include_images=include_images)
     _replace_tables(soup)
+    _replace_inline_formatting(soup)
+    code_blocks = _replace_code_blocks(soup)
 
     discovered_urls: list[str] = []
     for link in soup.find_all("a", href=True):
@@ -98,7 +100,7 @@ def extract_content(
     title = title_tag.get_text(strip=True) if title_tag else base_url
 
     content_roots = _content_roots(soup)
-    markdown = _html_to_markdown(soup, content_roots)
+    markdown = _html_to_markdown(soup, content_roots, code_blocks)
     return ExtractedContent(
         title=title,
         markdown=markdown,
@@ -178,6 +180,38 @@ def _replace_tables(soup: BeautifulSoup) -> None:
         table.replace_with(placeholder)
 
 
+def _replace_code_blocks(soup: BeautifulSoup) -> list[str]:
+    """Replace <pre> elements (and their wrapper divs) with placeholders."""
+    code_blocks: list[str] = []
+    for pre in soup.find_all("pre"):
+        code_blocks.append(pre.get_text())
+        placeholder = soup.new_tag("code-placeholder")
+        placeholder["data-index"] = str(len(code_blocks) - 1)
+
+        # Replace wrapper div if pre is its only meaningful child
+        target = pre
+        parent = pre.parent
+        while parent and parent.name == "div":
+            children = [c for c in parent.children if isinstance(c, Tag) or str(c).strip()]
+            if len(children) == 1:
+                target = parent
+                parent = parent.parent
+            else:
+                break
+        target.replace_with(placeholder)
+    return code_blocks
+
+
+def _replace_inline_formatting(soup: BeautifulSoup) -> None:
+    """Replace inline formatting tags with markdown syntax."""
+    for tags, fmt in [(["em", "i"], "*{}*"), (["strong", "b"], "**{}**")]:
+        for tag in soup.find_all(tags):
+            tag.replace_with(fmt.format(tag.get_text()))
+    for tag in soup.find_all("code"):
+        if not tag.find_parent("pre"):
+            tag.replace_with(f"`{tag.get_text()}`")
+
+
 def _normalize_url(url: str) -> str:
     parts = urlsplit(url)
     if parts.scheme not in {"http", "https"}:
@@ -186,7 +220,7 @@ def _normalize_url(url: str) -> str:
     return urlunsplit((parts.scheme, parts.netloc, path, parts.query, ""))
 
 
-def _html_to_markdown(soup: BeautifulSoup, content_roots: list[Tag]) -> str:
+def _html_to_markdown(soup: BeautifulSoup, content_roots: list[Tag], code_blocks: list[str]) -> str:
     """Convert HTML to markdown. Blacklisted elements are already stripped from DOM."""
     block_tags = {
         "h1",
@@ -197,13 +231,13 @@ def _html_to_markdown(soup: BeautifulSoup, content_roots: list[Tag]) -> str:
         "h6",
         "p",
         "li",
-        "pre",
         "table",
         "div",
         "header",
         "section",
         "details",
         "summary",
+        "code-placeholder",
     }
     lines: list[str] = []
     body = soup.body or soup
@@ -216,6 +250,17 @@ def _html_to_markdown(soup: BeautifulSoup, content_roots: list[Tag]) -> str:
             continue
         if element.name == "summary":
             continue
+        # Handle code block placeholders (skip if inside li - handled there)
+        if element.name == "code-placeholder":
+            if element.find_parent("li"):
+                continue
+            index = int(element.get("data-index", 0))
+            if index < len(code_blocks):
+                lines.append("```")
+                lines.append(code_blocks[index])
+                lines.append("```")
+                lines.append("")
+            continue
         text = element.get_text(" ", strip=True)
         if not text:
             continue
@@ -223,23 +268,41 @@ def _html_to_markdown(soup: BeautifulSoup, content_roots: list[Tag]) -> str:
             lines.extend(_details_to_markdown(element))
             lines.append("")
             continue
-        if element.name == "p" and _is_strong_only(element):
-            lines.append(f"**{text}**")
-        elif element.name.startswith("h"):
+        if element.name.startswith("h"):
             level = int(element.name[1])
             lines.append(f"{'#' * level} {text}")
         elif element.name == "table":
             lines.extend(text.splitlines())
         elif element.name == "li":
             prefix = _get_list_prefix(element)
-            lines.append(f"{prefix}{text}")
-        elif element.name == "pre":
-            lines.append("```")
-            lines.append(text)
-            lines.append("```")
+            # Process children in order, handling code blocks specially
+            text_parts: list[str] = []
+            for child in element.children:
+                if isinstance(child, Tag):
+                    # Check if this child contains a code-placeholder
+                    placeholder = child if child.name == "code-placeholder" else child.find("code-placeholder")
+                    if placeholder:
+                        if text_parts:
+                            lines.append(f"{prefix}{' '.join(text_parts)}")
+                            prefix = ""
+                            text_parts = []
+                            lines.append("")
+                        idx = int(placeholder.get("data-index", 0))
+                        if idx < len(code_blocks):
+                            lines.extend(["```", code_blocks[idx], "```", ""])
+                    else:
+                        t = child.get_text(" ", strip=True)
+                        if t:
+                            text_parts.append(t)
+                elif str(child).strip():
+                    text_parts.append(str(child).strip())
+            if text_parts:
+                lines.append(f"{prefix}{' '.join(text_parts)}")
+            continue  # Skip default blank line handling
         else:
             lines.append(text)
         lines.append("")
+
     return "\n".join(lines).strip() + "\n"
 
 
@@ -280,13 +343,6 @@ def _get_list_prefix(li_element: Tag) -> str:
             break
         position += 1
     return f"{position}. "
-
-
-def _is_strong_only(element: Tag) -> bool:
-    children = [child for child in element.find_all(True, recursive=False)]
-    if len(children) != 1 or children[0].name != "strong":
-        return False
-    return element.get_text(" ", strip=True) == children[0].get_text(" ", strip=True)
 
 
 def _has_block_child(element: Tag, block_tags: set[str]) -> bool:

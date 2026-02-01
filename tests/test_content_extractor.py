@@ -164,3 +164,74 @@ def test_unordered_and_ordered_lists() -> None:
     assert "1. First step" in result.markdown
     assert "2. Second step" in result.markdown
     assert "3. Third step" in result.markdown
+
+
+def test_list_items_exclude_nested_pre_content() -> None:
+    """Test that list items don't include content from nested pre blocks."""
+    html = """
+    <html>
+      <body>
+        <ol>
+          <li>Create a file:
+            <pre><code>SOME_VAR=value</code></pre>
+          </li>
+          <li>Run the command</li>
+        </ol>
+      </body>
+    </html>
+    """
+    result = extract_content(
+        html,
+        base_url="https://example.com",
+        prefix="https://example.com/",
+        tag_blacklist=[],
+        attr_blacklist=[],
+    )
+
+    # The code block content should appear only once (in the code block)
+    assert result.markdown.count("SOME_VAR=value") == 1
+    # List item should not contain the code block content
+    assert "1. Create a file:" in result.markdown
+    assert "1. Create a file: SOME_VAR" not in result.markdown
+    # Code block should still be present
+    assert "```" in result.markdown
+
+
+def test_inline_formatting() -> None:
+    """Test that em, strong, and code tags are converted to markdown."""
+    html = """
+    <html>
+      <body>
+        <p>This is <em>italic</em> and <i>also italic</i> text.</p>
+        <p>This is <strong>bold</strong> and <b>also bold</b> text.</p>
+        <p>Run <code>npm install</code> to install.</p>
+        <p><em>Example:</em> An example here.</p>
+        <pre><code>code block should not be affected</code></pre>
+      </body>
+    </html>
+    """
+    result = extract_content(
+        html,
+        base_url="https://example.com",
+        prefix="https://example.com/",
+        tag_blacklist=[],
+        attr_blacklist=[],
+    )
+
+    # Check italic
+    assert "*italic*" in result.markdown
+    assert "*also italic*" in result.markdown
+
+    # Check bold
+    assert "**bold**" in result.markdown
+    assert "**also bold**" in result.markdown
+
+    # Check inline code
+    assert "`npm install`" in result.markdown
+
+    # Check combined
+    assert "*Example:*" in result.markdown
+
+    # Code blocks should still work (no backticks inside)
+    assert "```" in result.markdown
+    assert "code block should not be affected" in result.markdown
