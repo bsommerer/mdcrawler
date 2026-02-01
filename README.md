@@ -1,5 +1,17 @@
 # MDCrawler
 
+[![CI](https://github.com/bsommerer/mdcrawler/actions/workflows/test.yml/badge.svg)](https://github.com/bsommerer/mdcrawler/actions/workflows/test.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+
+---
+
+> 🕷️ **Crawl any documentation site. Get clean Markdown. Feed it to your LLM.**
+
 A command-line tool that crawls documentation websites and converts them to clean Markdown files. Useful for creating offline documentation, feeding docs to LLMs, or archiving web content.
 
 ## Features
@@ -140,9 +152,28 @@ make check    # Run all checks (lint + test)
 
 ## How It Works
 
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Fetch     │────▶│   Extract   │────▶│   Convert   │────▶│   Output    │
+│   HTML      │     │   Content   │     │ to Markdown │     │   Files     │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+      │                   │                   │                   │
+      ▼                   ▼                   ▼                   ▼
+  Concurrent          Removes nav,       Headings, lists,    Individual +
+  fetching            sidebars, etc.     tables, code        combined .md
+```
+
 1. **Fetching**: Fetches HTML pages concurrently using the specified number of threads
 2. **Extraction**: Parses HTML with BeautifulSoup and extracts main content
 3. **Filtering**: Removes blacklisted tags and elements matching blacklisted class/id patterns
 4. **Conversion**: Converts remaining HTML to Markdown (headings, lists, tables, code blocks, inline formatting)
 5. **Link Discovery**: Finds internal links within the prefix scope for recursive crawling
 6. **Output**: Writes individual Markdown files and a combined file with all content
+
+---
+
+<p align="center">
+  Made with ❤️ and 🐍 Python
+  <br>
+  <sub>Built with BeautifulSoup • Powered by concurrent.futures</sub>
+</p>
